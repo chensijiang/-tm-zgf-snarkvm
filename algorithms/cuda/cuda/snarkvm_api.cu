@@ -136,7 +136,7 @@ extern "C" {
 
         std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
-        RustError ret = RustError{cudaErrorMemoryAllocation}
+        RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
                 ret = snarkvm_g->NTT(inout, inout, lg_domain_size, ntt_order,
@@ -164,7 +164,7 @@ extern "C" {
                               uint32_t lg_domain_size) {
         std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
-        RustError ret = RustError{cudaErrorMemoryAllocation}
+        RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
                 ret = snarkvm_g->PolyMul(out,
@@ -196,7 +196,7 @@ extern "C" {
 
         std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
-        RustError ret = RustError{cudaErrorMemoryAllocation}
+        RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
                 ret = snarkvm_g->MSM(out, points, npoints, scalars, ffi_affine_size);
