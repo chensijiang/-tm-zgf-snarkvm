@@ -107,7 +107,7 @@ public:
         }
         return snarkvm != nullptr;
     }
-    snarkvm_t* operator->() {
+    snarkvm_t* get() {
         assert (ok());
         return snarkvm;
     }
@@ -139,7 +139,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = snarkvm_g->NTT(inout, inout, lg_domain_size, ntt_order,
+                ret = snarkvm_g.get()->NTT(inout, inout, lg_domain_size, ntt_order,
                                ntt_direction, ntt_type);
                 snarkvm_g.push((*p));
                 return ret;
@@ -167,7 +167,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = snarkvm_g->PolyMul(out,
+                ret = snarkvm_g.get()->PolyMul(out,
                                          pcount, polynomials, plens,
                                          ecount, evaluations, elens,
                                          lg_domain_size);
@@ -199,7 +199,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = snarkvm_g->MSM(out, points, npoints, scalars, ffi_affine_size);
+                ret = snarkvm_g.get()->MSM(out, points, npoints, scalars, ffi_affine_size);
                 snarkvm_g.push((*p));
                 return ret;
             }
