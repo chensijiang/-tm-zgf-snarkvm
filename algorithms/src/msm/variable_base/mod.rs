@@ -34,14 +34,19 @@ impl VariableBase {
         {
             // For BLS12-377, we perform variable base MSM using a batched addition technique.
             if TypeId::of::<G>() == TypeId::of::<G1Affine>() {
+
                 #[cfg(all(feature = "cuda", target_arch = "x86_64"))]
                 // TODO SNP: where to set the threshold
+                println!("scalars :{:?}", scalars.len());
                 if scalars.len() > 1024 {
-                    let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
-                        bases, scalars,
-                    );
-                    if let Ok(result) = result {
-                        return result;
+                    info_time!("msm cuda");
+                    {
+                        let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
+                            bases, scalars,
+                        );
+                        if let Ok(result) = result {
+                            return result;
+                        }
                     }
                 }
                 batched::msm(bases, scalars)
