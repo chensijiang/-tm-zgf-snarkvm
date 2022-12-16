@@ -24,28 +24,32 @@ use snarkvm_curves::{bls12_377::G1Affine, traits::AffineCurve};
 use snarkvm_fields::PrimeField;
 
 use core::any::TypeId;
+use measure_time::{info_time, debug_time, trace_time, error_time, print_time};
 
 pub struct VariableBase;
 
 impl VariableBase {
     pub fn msm<G: AffineCurve>(bases: &[G], scalars: &[<G::ScalarField as PrimeField>::BigInteger]) -> G::Projective {
-        // For BLS12-377, we perform variable base MSM using a batched addition technique.
-        if TypeId::of::<G>() == TypeId::of::<G1Affine>() {
-            #[cfg(all(feature = "cuda", target_arch = "x86_64"))]
-            // TODO SNP: where to set the threshold
-            if scalars.len() > 1024 {
-                let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
-                    bases, scalars,
-                );
-                if let Ok(result) = result {
-                    return result;
+        info_time!("msm");
+        {
+            // For BLS12-377, we perform variable base MSM using a batched addition technique.
+            if TypeId::of::<G>() == TypeId::of::<G1Affine>() {
+                #[cfg(all(feature = "cuda", target_arch = "x86_64"))]
+                // TODO SNP: where to set the threshold
+                if scalars.len() > 0 {
+                    let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
+                        bases, scalars,
+                    );
+                    if let Ok(result) = result {
+                        return result;
+                    }
                 }
+                batched::msm(bases, scalars)
             }
-            batched::msm(bases, scalars)
-        }
-        // For all other curves, we perform variable base MSM using Pippenger's algorithm.
-        else {
-            standard::msm(bases, scalars)
+            // For all other curves, we perform variable base MSM using Pippenger's algorithm.
+            else {
+                standard::msm(bases, scalars)
+            }
         }
     }
 
