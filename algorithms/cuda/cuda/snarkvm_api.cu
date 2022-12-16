@@ -18,7 +18,73 @@
 
 #include "snarkvm.cu"
 
+#include <iostream>
+
+#include <queue>
+#include <memory>
+#include <mutex>
+#include <condition_variable>
+
+
 #ifndef __CUDA_ARCH__
+
+template<typename T>
+class threadsafe_queue {
+private:
+    mutable std::mutex mut;
+    std::queue<T> data_queue;
+    std::condition_variable data_cond;
+public:
+    threadsafe_queue(){}
+    threadsafe_queue(threadsafe_queue const& other) {
+        std::lock_guard<std::mutex> lk(other.mut);
+        data_queue=other.data_queue;
+    }
+
+    void push(T new_value) {
+        std::lock_guard<std::mutex> lk(mut);
+        data_queue.push(new_value);
+        data_cond.notify_one();
+    }
+
+    void wait_and_pop(T& value) {
+        std::unique_lock<std::mutex> lk(mut);
+        data_cond.wait(lk,[this]{return !data_queue.empty();});
+        value=data_queue.front();
+        data_queue.pop();
+    }
+
+    std::shared_ptr<T> wait_and_pop() {
+        std::unique_lock<std::mutex> lk(mut);
+        data_cond.wait(lk,[this]{return !data_queue.empty();});
+        std::shared_ptr<T> res(std::make_shared<T>(data_queue.front()));
+        data_queue.pop();
+        return res;
+    }
+
+    bool try_pop(T& value) {
+        std::lock_guard<std::mutex> lk(mut);
+        if(data_queue.empty())
+            return false;
+        value=data_queue.front();
+        data_queue.pop();
+        return true;
+    }
+
+    std::shared_ptr<T> try_pop() {
+        std::lock_guard<std::mutex> lk(mut);
+        if(data_queue.empty())
+            return std::shared_ptr<T>();
+        std::shared_ptr<T> res(std::make_shared<T>(data_queue.front()));
+        data_queue.pop();
+        return res;
+    }
+
+    bool empty() const {
+        std::lock_guard<std::mutex> lk(mut);
+        return data_queue.empty();
+    }
+};
 
 // Lazy instantiation of snarkvm_t
 class snarkvm_singleton_t {
@@ -46,7 +112,19 @@ public:
         return snarkvm;
     }
 };
-snarkvm_singleton_t snarkvm_g;
+//snarkvm_singleton_t snarkvm_g;
+
+static threadsafe_queue<snarkvm_singleton_t*> snarkvm_g;
+bool initCode()
+{
+    for (int i = 0; i < 10; i++) {
+        snarkvm_g.push(new snarkvm_singleton_t());
+    }
+    return true;
+}
+
+static bool bSzArrCountryCodeInit  = initCode();
+
                                          
 #ifndef __CUDA_ARCH__
 
@@ -55,32 +133,87 @@ extern "C" {
                           NTT::InputOutputOrder ntt_order, NTT::Direction ntt_direction,
                           NTT::Type ntt_type)
     {
-        if (!snarkvm_g.ok()) {
-            return RustError{cudaErrorMemoryAllocation};
+
+        std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
+
+        RustError ret = RustError{cudaErrorMemoryAllocation}
+        try{
+            if ((*p)->ok()) {
+                ret = snarkvm_g->NTT(inout, inout, lg_domain_size, ntt_order,
+                               ntt_direction, ntt_type);
+                snarkvm_g.push((*p));
+                return ret;
+            }
+            snarkvm_g.push((*p));
         }
-        return snarkvm_g->NTT(inout, inout, lg_domain_size, ntt_order,
-                              ntt_direction, ntt_type);
+        catch (...){
+            snarkvm_g.push((*p));
+        }
+        return ret;
+
+        //if (!snarkvm_g.ok()) {
+        //    return RustError{cudaErrorMemoryAllocation};
+        //}
+        //return snarkvm_g->NTT(inout, inout, lg_domain_size, ntt_order,
+        //                      ntt_direction, ntt_type);
     }
 
     RustError snarkvm_polymul(fr_t* out,
                               size_t pcount, fr_t** polynomials, size_t* plens,
                               size_t ecount, fr_t** evaluations, size_t* elens,
                               uint32_t lg_domain_size) {
-        if (!snarkvm_g.ok()) {
-            return RustError{cudaErrorMemoryAllocation};
+        std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
+
+        RustError ret = RustError{cudaErrorMemoryAllocation}
+        try{
+            if ((*p)->ok()) {
+                ret = snarkvm_g->PolyMul(out,
+                                         pcount, polynomials, plens,
+                                         ecount, evaluations, elens,
+                                         lg_domain_size);
+                snarkvm_g.push((*p));
+                return ret;
+            }
+            snarkvm_g.push((*p));
         }
-        return snarkvm_g->PolyMul(out,
-                                  pcount, polynomials, plens,
-                                  ecount, evaluations, elens,
-                                  lg_domain_size);
+        catch (...){
+            snarkvm_g.push((*p));
+        }
+        return ret;
+
+
+        //if (!snarkvm_g.ok()) {
+        //    return RustError{cudaErrorMemoryAllocation};
+        //}
+        //return snarkvm_g->PolyMul(out,
+        //                          pcount, polynomials, plens,
+        //                          ecount, evaluations, elens,
+        //                          lg_domain_size);
     }
 
     RustError snarkvm_msm(point_t* out, const affine_t points[], size_t npoints,
                           const scalar_t scalars[], size_t ffi_affine_size) {
-        if (!snarkvm_g.ok()) {
-            return RustError{cudaErrorMemoryAllocation};
+
+        std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
+
+        RustError ret = RustError{cudaErrorMemoryAllocation}
+        try{
+            if ((*p)->ok()) {
+                ret = snarkvm_g->MSM(out, points, npoints, scalars, ffi_affine_size);
+                snarkvm_g.push((*p));
+                return ret;
+            }
+            snarkvm_g.push((*p));
         }
-        return snarkvm_g->MSM(out, points, npoints, scalars, ffi_affine_size);
+        catch (...){
+            snarkvm_g.push((*p));
+        }
+        return ret;
+
+        //if (!snarkvm_g.ok()) {
+        //    return RustError{cudaErrorMemoryAllocation};
+        //}
+        //return snarkvm_g->MSM(out, points, npoints, scalars, ffi_affine_size);
     }
 }
 #endif // __CUDA_ARCH__
