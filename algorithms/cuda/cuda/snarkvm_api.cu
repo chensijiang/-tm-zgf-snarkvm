@@ -139,7 +139,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = (*p).get()->NTT(inout, inout, lg_domain_size, ntt_order,
+                ret = (*p)->get()->NTT(inout, inout, lg_domain_size, ntt_order,
                                ntt_direction, ntt_type);
                 snarkvm_g.push((*p));
                 return ret;
@@ -167,7 +167,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = (*p).get()->PolyMul(out,
+                ret = (*p)->get()->PolyMul(out,
                                          pcount, polynomials, plens,
                                          ecount, evaluations, elens,
                                          lg_domain_size);
@@ -199,7 +199,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                ret = (*p).get()->MSM(out, points, npoints, scalars, ffi_affine_size);
+                ret = (*p)->get()->MSM(out, points, npoints, scalars, ffi_affine_size);
                 snarkvm_g.push((*p));
                 return ret;
             }
