@@ -89,12 +89,12 @@ public:
 // Lazy instantiation of snarkvm_t
 class snarkvm_singleton_t {
     bool failed = false;
-    int  index  = 0;
+    int  iindex  = 0;
     snarkvm_t *snarkvm = nullptr;
 
 public:
-    snarkvm_singleton_t(int index) {
-        this.index = index;
+    snarkvm_singleton_t(int ii) {
+        iindex = ii;
     }
     ~snarkvm_singleton_t() {
         delete snarkvm;
@@ -105,10 +105,11 @@ public:
             // SNP TODO: max domain size?
             snarkvm = new snarkvm_t(17);
             if (snarkvm == nullptr) {
-                cout << "-----------------------faild to create snarkvm----------------------";
                 failed = true;
             }
         }
+        cout << "-----------------------vm ok----------------------";
+
         return snarkvm != nullptr;
     }
     snarkvm_t* get() {
@@ -116,7 +117,7 @@ public:
         return snarkvm;
     }
     int get_index(){
-        return this.index;
+        return iindex;
     }
 };
 //snarkvm_singleton_t snarkvm_g;
@@ -208,7 +209,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                cout << "vm index:" << (*p)->get_index()  <<std::end;
+                cout << "vm index: " << (*p)->get_index()  <<std::end;
                 ret = (*p)->get()->MSM(out, points, npoints, scalars, ffi_affine_size);
                 snarkvm_g.push((*p));
                 return ret;
