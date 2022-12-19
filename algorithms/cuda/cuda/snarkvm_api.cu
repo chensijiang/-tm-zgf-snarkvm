@@ -115,7 +115,7 @@ public:
         assert (ok());
         return snarkvm;
     }
-    int index(){
+    int get_index(){
         return this.index;
     }
 };
@@ -175,7 +175,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                cout << "vm index:" << (*p)->index()  <<std::end;
+
                 ret = (*p)->get()->PolyMul(out,
                                          pcount, polynomials, plens,
                                          ecount, evaluations, elens,
@@ -208,6 +208,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
+                cout << "vm index:" << (*p)->get_index()  <<std::end;
                 ret = (*p)->get()->MSM(out, points, npoints, scalars, ffi_affine_size);
                 snarkvm_g.push((*p));
                 return ret;
