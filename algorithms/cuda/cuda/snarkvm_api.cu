@@ -89,10 +89,13 @@ public:
 // Lazy instantiation of snarkvm_t
 class snarkvm_singleton_t {
     bool failed = false;
+    int  index  = 0;
     snarkvm_t *snarkvm = nullptr;
 
 public:
-    snarkvm_singleton_t() {}
+    snarkvm_singleton_t(int index) {
+        this.index = index;
+    }
     ~snarkvm_singleton_t() {
         delete snarkvm;
         snarkvm = nullptr;
@@ -112,6 +115,9 @@ public:
         assert (ok());
         return snarkvm;
     }
+    int index(){
+        return this.index;
+    }
 };
 //snarkvm_singleton_t snarkvm_g;
 
@@ -119,7 +125,7 @@ static threadsafe_queue<snarkvm_singleton_t*> snarkvm_g;
 bool initCode()
 {
     for (int i = 0; i < 50; i++) {
-        snarkvm_g.push(new snarkvm_singleton_t());
+        snarkvm_g.push(new snarkvm_singleton_t(i));
     }
     return true;
 }
@@ -163,11 +169,13 @@ extern "C" {
                               size_t pcount, fr_t** polynomials, size_t* plens,
                               size_t ecount, fr_t** evaluations, size_t* elens,
                               uint32_t lg_domain_size) {
+
         std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
+                cout << "vm index:" << (*p)->index()  <<std::end;
                 ret = (*p)->get()->PolyMul(out,
                                          pcount, polynomials, plens,
                                          ecount, evaluations, elens,
