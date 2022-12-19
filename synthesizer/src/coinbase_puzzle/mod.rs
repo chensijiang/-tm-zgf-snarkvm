@@ -247,32 +247,33 @@ impl<N: Network> CoinbasePuzzle<N> {
             product_evaluations
         };
 
-        let thread_sizes = 500;
-        let mut handles= Vec::with_capacity(thread_sizes);
-        for i in 1..thread_sizes {
-            let pk0 = pk.clone();
-            let polynomial0 = polynomial.clone();
-            let epoch_challenge0 = epoch_challenge.clone();
-            let nonce0 = nonce.clone();
-            let minimum_proof_target0 = minimum_proof_target.clone();
-            let address0 = address.clone();
-            let product_evaluations0= product_evaluations.clone();
-
-            let handle = std::thread::spawn( move || {
-                let ret = prove_ex_inner(&pk0, &polynomial0,&epoch_challenge0, &address0,nonce0,minimum_proof_target0, &product_evaluations0);
-                ret
-            });
-
-            handles.push(handle);
-        }
-
         let mut rets = Vec::<ProverSolution<N>>::new();
 
-        for handle in handles {
+        for _i in 0..10 {
+            let thread_sizes = 50;
+            let mut handles = Vec::with_capacity(thread_sizes);
+            for i in 1..thread_sizes {
+                let pk0 = pk.clone();
+                let polynomial0 = polynomial.clone();
+                let epoch_challenge0 = epoch_challenge.clone();
+                let nonce0 = nonce.clone();
+                let minimum_proof_target0 = minimum_proof_target.clone();
+                let address0 = address.clone();
+                let product_evaluations0 = product_evaluations.clone();
 
-           let ret = handle.join().unwrap();
-            if let Ok(s) = ret{
-                rets.push(s);
+                let handle = std::thread::spawn(move || {
+                    let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
+                    ret
+                });
+
+                handles.push(handle);
+            }
+
+            for handle in handles {
+                let ret = handle.join().unwrap();
+                if let Ok(s) = ret {
+                    rets.push(s);
+                }
             }
         }
 
