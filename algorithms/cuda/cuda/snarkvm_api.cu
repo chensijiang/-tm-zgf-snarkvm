@@ -209,7 +209,7 @@ extern "C" {
         RustError ret = RustError{cudaErrorMemoryAllocation};
         try{
             if ((*p)->ok()) {
-                cout << "vm index: " << (*p)->get_index()  <<std::end;
+                cout << "vm index: " << (*p)->get_index()  << "+++++++++++++++";
                 ret = (*p)->get()->MSM(out, points, npoints, scalars, ffi_affine_size);
                 snarkvm_g.push((*p));
                 return ret;
