@@ -102,7 +102,7 @@ public:
             // SNP TODO: max domain size?
             snarkvm = new snarkvm_t(17);
             if (snarkvm == nullptr) {
-                cout << "-----------------------faild to create snarkvm----------------------"
+                cout << "-----------------------faild to create snarkvm----------------------";
                 failed = true;
             }
         }
