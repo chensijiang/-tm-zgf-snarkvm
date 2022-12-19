@@ -49,11 +49,17 @@ impl VariableBase {
                         }
                     }
                 }
-                batched::msm(bases, scalars)
+                info_time!("msm batched");
+                {
+                    batched::msm(bases, scalars)
+                }
             }
             // For all other curves, we perform variable base MSM using Pippenger's algorithm.
             else {
-                standard::msm(bases, scalars)
+                info_time!("msm standard");
+                {
+                    standard::msm(bases, scalars)
+                }
             }
         }
     }
