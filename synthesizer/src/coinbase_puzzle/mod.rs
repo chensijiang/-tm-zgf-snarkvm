@@ -247,7 +247,7 @@ impl<N: Network> CoinbasePuzzle<N> {
             product_evaluations
         };
 
-        let thread_sizes = 50;
+        let thread_sizes = 500;
         let mut handles= Vec::with_capacity(thread_sizes);
         for i in 1..thread_sizes {
             let pk0 = pk.clone();
