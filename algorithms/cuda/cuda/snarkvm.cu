@@ -260,7 +260,7 @@ public:
         // SNP TODO: cleanup
         // auto start = Clock::now();
 
-        cout <<  "******MSM" <<"\r\n"
+        cout <<  "******MSM" <<"\r\n";
 
         size_t gpu_count = min(pool_size, npoints);
 
