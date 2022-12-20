@@ -71,9 +71,11 @@ typedef std::chrono::high_resolution_clock Clock;
 
 using namespace std;
 
+int pool_size = 1;
+int gpu_index = 0;
+
 class snarkvm_t {
     thread_pool_t pool;
-
     struct resource_t {
         int dev;
         int stream;
@@ -134,7 +136,7 @@ public:
         }
         try {
             for (size_t i = 0; i < ngpus(); i++) {
-                auto& gpu = select_gpu(i);
+                auto& gpu = select_gpu(gpu_index);
                 d_mem[i] = new dev_ptr_t<fr_t>(allocated_elements * gpu_t::FLIP_FLOP);
                 h_mem[i] = new host_ptr_t<fr_t>(allocated_elements * gpu_t::FLIP_FLOP);
             }
@@ -166,7 +168,7 @@ public:
 
         resource_t* resource = resources.recv();
         int dev = resource->dev;
-        auto& gpu = select_gpu(dev);
+        auto& gpu = select_gpu(gpu_index);
         int stream_idx = resource->stream;
         stream_t& stream = gpu[stream_idx];
 
@@ -217,7 +219,7 @@ public:
 
         resource_t* resource = resources.recv();
         int dev = resource->dev;
-        auto& gpu = select_gpu(dev);
+        auto& gpu = select_gpu(gpu_index);
         int stream_idx = resource->stream;
         stream_t& stream = gpu[stream_idx];
 
@@ -258,7 +260,7 @@ public:
 
         size_t bases_per_gpu = (npoints + gpu_count - 1) / gpu_count;
 
-        cout << "******npoints: " << npoints << " gpu_count: " << gpu_count << " ffi_affine_size:" << ffi_affine_size  << " bases_per_gpu:" <<  "\r\n";
+        cout << "******npoints: " << npoints << " gpu_count: " << gpu_count << " ffi_affine_size:" << ffi_affine_size  << " bases_per_gpu:" << bases_per_gpu << "\r\n";
 
         channel_t<size_t> ch;
         RustError error = RustError{cudaSuccess};
@@ -267,7 +269,7 @@ public:
         for (size_t i = 0; i < gpu_count; i++) {
             pool.spawn([&, i]() {
                 int dev = i;
-                select_gpu(dev);
+                select_gpu(gpu_index);
                 size_t start = i * bases_per_gpu;
                 size_t sz = std::min(bases_per_gpu, npoints - start);
                 cout << "******start: " << start << " sz:" << sz << "\r\n";
