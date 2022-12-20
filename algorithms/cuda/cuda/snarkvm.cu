@@ -286,7 +286,7 @@ public:
                 
                 RustError ret;
                 try {
-                    for (int m = 0; m < 100; m++)
+                    for (int m = 0; m < 100; m++){
                         msm_t <bucket_t, point_t, affine_t, scalar_t> msm(dev);
                         ret = msm.invoke(partial_sums[i], vec_t < affine_t > {pts, sz},
                                      &scalars[start], false, ffi_affine_size);
