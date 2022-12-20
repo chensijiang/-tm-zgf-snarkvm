@@ -258,7 +258,7 @@ public:
 
         size_t bases_per_gpu = (npoints + gpu_count - 1) / gpu_count;
 
-        cout << "******npoints: " << npoints << " gpu_count: " << gpu_count << " ffi_affine_size:" << ffi_affine_size  << " bases_per_gpu:" <<  std:endl;
+        cout << "******npoints: " << npoints << " gpu_count: " << gpu_count << " ffi_affine_size:" << ffi_affine_size  << " bases_per_gpu:" <<  "\r\n";
 
         channel_t<size_t> ch;
         RustError error = RustError{cudaSuccess};
@@ -270,7 +270,7 @@ public:
                 select_gpu(dev);
                 size_t start = i * bases_per_gpu;
                 size_t sz = std::min(bases_per_gpu, npoints - start);
-                cout << "******start: " << start << " sz:" << sz << std:endl;
+                cout << "******start: " << start << " sz:" << sz << "\r\n";
                 // This is ugly, but we only know the size of the affine points in bytes
                 const affine_t* pts = (affine_t*)(&((uint8_t*)points)[start * ffi_affine_size]);
                 
