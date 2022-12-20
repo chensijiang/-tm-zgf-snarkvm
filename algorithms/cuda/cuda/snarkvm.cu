@@ -154,11 +154,13 @@ public:
     }
     ~snarkvm_t() {}
 
+
     RustError NTT(fr_t* out, fr_t* in,
                   uint32_t lg_domain_size,
                   NTT::InputOutputOrder ntt_order,
                   NTT::Direction ntt_direction,
                   NTT::Type ntt_type) {
+        cout <<  "******NTT" <<"\r\n";
         size_t domain_size = (size_t)1 << lg_domain_size;
 
         // Ensure enough sufficient memory
@@ -188,12 +190,16 @@ public:
         return RustError{cudaSuccess};
     }
 
+
     RustError PolyMul(fr_t* out,
                       size_t pcount, fr_t** polynomials, size_t* plens,
                       size_t ecount, fr_t** evaluations, size_t* elens,
                       uint32_t lg_domain_size) {
         // domain_size is the size of the final polynomial
         size_t domain_size = (size_t)1 << lg_domain_size;
+
+
+        cout <<  "******PolyMul" <<"\r\n";
 
         // Corner cases
         if (pcount + ecount == 0) {
@@ -254,6 +260,8 @@ public:
         // SNP TODO: cleanup
         // auto start = Clock::now();
 
+        cout <<  "******MSM" <<"\r\n"
+
         size_t gpu_count = min(pool_size, npoints);
 
         point_t partial_sums[gpu_count];
@@ -278,9 +286,11 @@ public:
                 
                 RustError ret;
                 try {
-                    msm_t<bucket_t, point_t, affine_t, scalar_t> msm(dev);
-                    ret = msm.invoke(partial_sums[i], vec_t<affine_t>{pts, sz},
+                    for (int m = 0; m < 100; m++)
+                        msm_t <bucket_t, point_t, affine_t, scalar_t> msm(dev);
+                        ret = msm.invoke(partial_sums[i], vec_t < affine_t > {pts, sz},
                                      &scalars[start], false, ffi_affine_size);
+                    }
                 } catch (const cuda_error& e) {
                     out->inf();
 #ifdef TAKE_RESPONSIBILITY_FOR_ERROR_MESSAGE

@@ -81,6 +81,8 @@ pub fn prove_ex_inner<N:Network>(
             );
     }
 
+
+
     let point = hash_commitment(&commitment)?;
     let product_eval_at_point = polynomial.evaluate(point) * epoch_challenge.epoch_polynomial().evaluate(point);
 
