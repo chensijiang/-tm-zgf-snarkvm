@@ -71,7 +71,7 @@ typedef std::chrono::high_resolution_clock Clock;
 
 using namespace std;
 
-int pool_size = 1;
+size_t pool_size = 1;
 int gpu_index = 0;
 
 class snarkvm_t {
