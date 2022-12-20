@@ -295,7 +295,7 @@ public:
         }
         size_t dev = ch.recv();
 
-        cout << "recv dev: " << dev << std:endl;
+        cout << "recv dev: " << dev << "\r\n";
 
         *out = partial_sums[dev];
         for (size_t i = 0; i < gpu_count - 1; i++) {
