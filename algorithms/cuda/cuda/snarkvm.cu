@@ -253,8 +253,13 @@ public:
         // auto start = Clock::now();
 
         size_t gpu_count = min(ngpus(), npoints);
+
         point_t partial_sums[gpu_count];
+
         size_t bases_per_gpu = (npoints + gpu_count - 1) / gpu_count;
+
+        cout << "******npoints: " << npoints << " gpu_count: " << gpu_count << " ffi_affine_size:" << ffi_affine_size  << " bases_per_gpu:" <<  std:endl;
+
         channel_t<size_t> ch;
         RustError error = RustError{cudaSuccess};
 
@@ -265,7 +270,7 @@ public:
                 select_gpu(dev);
                 size_t start = i * bases_per_gpu;
                 size_t sz = std::min(bases_per_gpu, npoints - start);
-
+                cout << "******start: " << start << " sz:" << sz << std:endl;
                 // This is ugly, but we only know the size of the affine points in bytes
                 const affine_t* pts = (affine_t*)(&((uint8_t*)points)[start * ffi_affine_size]);
                 
@@ -289,11 +294,15 @@ public:
             });
         }
         size_t dev = ch.recv();
+
+        cout << "recv dev: " << dev << std:endl;
+
         *out = partial_sums[dev];
         for (size_t i = 0; i < gpu_count - 1; i++) {
             dev = ch.recv();
             point_t::dadd(*out, *out, partial_sums[dev]);
         }
+
         // auto end = Clock::now();
         // uint64_t dt = std::chrono::duration_cast<
         //     std::chrono::microseconds>(end - start).count();
