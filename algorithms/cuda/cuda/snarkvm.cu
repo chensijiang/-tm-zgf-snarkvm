@@ -93,7 +93,7 @@ class snarkvm_t {
 
     void free_memory() {
         allocated_elements = 0;
-        for (size_t i = 0; i < ngpus(); i++) {
+        for (size_t i = 0; i < pool_size; i++) {
             if (d_mem[i] != nullptr) {
                 delete d_mem[i];
                 d_mem[i] = nullptr;
@@ -123,19 +123,19 @@ class snarkvm_t {
     }
     
 public:
-    snarkvm_t(int max_lg_domain) : pool(ngpus()) {
+    snarkvm_t(int max_lg_domain) : pool(pool_size) {
         // Allocate storage for 4 polynomials, required by polynomial multiplication
         // Will be allocated per gpu per stream
         allocated_elements = ((size_t)1 << max_lg_domain) * 4;
 
-        d_mem.resize(ngpus());
-        h_mem.resize(ngpus());
-        for (size_t i = 0; i < ngpus(); i++) {
+        d_mem.resize(pool_size);
+        h_mem.resize(pool_size);
+        for (size_t i = 0; i < pool_size; i++) {
             d_mem[i] = nullptr;
             h_mem[i] = nullptr;
         }
         try {
-            for (size_t i = 0; i < ngpus(); i++) {
+            for (size_t i = 0; i < pool_size; i++) {
                 auto& gpu = select_gpu(gpu_index);
                 d_mem[i] = new dev_ptr_t<fr_t>(allocated_elements * gpu_t::FLIP_FLOP);
                 h_mem[i] = new host_ptr_t<fr_t>(allocated_elements * gpu_t::FLIP_FLOP);
@@ -147,7 +147,7 @@ public:
 
         // GPU resource allocation scheme
         for (size_t j = 0; j < gpu_t::FLIP_FLOP; j++) {
-            for (size_t dev = 0; dev < ngpus(); dev++) {
+            for (size_t dev = 0; dev < pool_size; dev++) {
                 resources.send(new resource_t(dev, j));
             }
         }
@@ -254,7 +254,7 @@ public:
         // SNP TODO: cleanup
         // auto start = Clock::now();
 
-        size_t gpu_count = min(ngpus(), npoints);
+        size_t gpu_count = min(pool_size, npoints);
 
         point_t partial_sums[gpu_count];
 
