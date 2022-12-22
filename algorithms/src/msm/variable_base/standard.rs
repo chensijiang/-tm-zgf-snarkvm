@@ -17,6 +17,7 @@
 use snarkvm_curves::{AffineCurve, ProjectiveCurve};
 use snarkvm_fields::{One, PrimeField, Zero};
 use snarkvm_utilities::{cfg_into_iter, BigInteger};
+use measure_time::{info_time, debug_time, trace_time, error_time, print_time};
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -78,29 +79,32 @@ fn standard_window<G: AffineCurve>(
 }
 
 pub fn msm<G: AffineCurve>(bases: &[G], scalars: &[<G::ScalarField as PrimeField>::BigInteger]) -> G::Projective {
-    // Determine the bucket size `c` (chosen empirically).
-    let c = match scalars.len() < 32 {
-        true => 1,
-        false => crate::msm::ln_without_floats(scalars.len()) + 2,
-    };
+    info_time!("msm standard");
+    {
+        // Determine the bucket size `c` (chosen empirically).
+        let c = match scalars.len() < 32 {
+            true => 1,
+            false => crate::msm::ln_without_floats(scalars.len()) + 2,
+        };
 
-    let num_bits = <G::ScalarField as PrimeField>::size_in_bits();
+        let num_bits = <G::ScalarField as PrimeField>::size_in_bits();
 
-    // Each window is of size `c`.
-    // We divide up the bits 0..num_bits into windows of size `c`, and
-    // in parallel process each such window.
-    let window_sums: Vec<_> =
-        cfg_into_iter!(0..num_bits).step_by(c).map(|w_start| standard_window(bases, scalars, w_start, c)).collect();
+        // Each window is of size `c`.
+        // We divide up the bits 0..num_bits into windows of size `c`, and
+        // in parallel process each such window.
+        let window_sums: Vec<_> =
+            cfg_into_iter!(0..num_bits).step_by(c).map(|w_start| standard_window(bases, scalars, w_start, c)).collect();
 
-    // We store the sum for the lowest window.
-    let (lowest, window_sums) = window_sums.split_first().unwrap();
+        // We store the sum for the lowest window.
+        let (lowest, window_sums) = window_sums.split_first().unwrap();
 
-    // We're traversing windows from high to low.
-    window_sums.iter().rev().fold(G::Projective::zero(), |mut total, (sum_i, window_size)| {
-        total += sum_i;
-        for _ in 0..*window_size {
-            total.double_in_place();
-        }
-        total
-    }) + lowest.0
+        // We're traversing windows from high to low.
+        window_sums.iter().rev().fold(G::Projective::zero(), |mut total, (sum_i, window_size)| {
+            total += sum_i;
+            for _ in 0..*window_size {
+                total.double_in_place();
+            }
+            total
+        }) + lowest.0
+    }
 }

@@ -87,8 +87,8 @@ fn main() {
         nvcc.flag("-Xcompiler").flag("-Wno-unused-function");
         nvcc.flag("-Xcompiler").flag("-Wno-subobject-linkage");
         nvcc.define("TAKE_RESPONSIBILITY_FOR_ERROR_MESSAGE", None);
-        #[cfg(feature = "cuda-mobile")]
-        nvcc.define("NTHREADS", "128");
+        //#[cfg(feature = "cuda-mobile")]
+        nvcc.define("NTHREADS", "512");
         nvcc.define(curve, None);
         if let Some(def) = cc_opt {
             nvcc.define(def, None);
