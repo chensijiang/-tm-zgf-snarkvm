@@ -209,7 +209,7 @@ RustError snarkvm_msm(point_t* out, const affine_t points[], size_t npoints,
     RustError ret = RustError{cudaErrorMemoryAllocation};
     try{
         if ((*p)->ok()) {
-            cout << "vm index: " << (*p)->get_index()  <<std::end;
+            cout << "vm index: " << (*p)->get_index()  << "\r\n";
             ret = (*p)->get()->MSM(out, points, npoints, scalars, ffi_affine_size);
             snarkvm_g.push((*p));
             return ret;
