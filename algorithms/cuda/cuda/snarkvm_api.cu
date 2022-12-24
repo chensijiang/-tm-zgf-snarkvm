@@ -155,7 +155,7 @@ public:
 static threadsafe_queue<snarkvm_singleton_t*> snarkvm_g;
 bool initCode()
 {
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 512; i++) {
         snarkvm_g.push(new snarkvm_singleton_t(i));
     }
     return true;
