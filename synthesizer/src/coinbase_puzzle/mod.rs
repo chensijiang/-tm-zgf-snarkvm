@@ -258,26 +258,22 @@ impl<N: Network> CoinbasePuzzle<N> {
             let epoch_challenge0 = epoch_challenge.clone();
             let pe_tx0 = pe_tx.clone();
             let handle = std::thread::spawn(move || {
-                loop {
 
-                    if !pe_run_flag {
-                        break;
-                    }
 
-                    let product_evaluations = {
 
-                        let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
+                let product_evaluations = {
 
-                        let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
-                            &polynomial_evaluations,
-                            &epoch_challenge0.epoch_polynomial_evaluations().evaluations,
-                        );
+                    let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
 
-                        product_evaluations
-                    };
-                    pe_tx0.send(product_evaluations).unwrap();
-                    info!("### pe_tx0 send");
-                }
+                    let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
+                        &polynomial_evaluations,
+                        &epoch_challenge0.epoch_polynomial_evaluations().evaluations,
+                    );
+
+                    product_evaluations
+                };
+                pe_tx0.send(product_evaluations).unwrap();
+                info!("### pe_tx0 send");
             });
             pe_handles.push(handle);
         }
