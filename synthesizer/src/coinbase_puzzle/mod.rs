@@ -253,6 +253,7 @@ impl<N: Network> CoinbasePuzzle<N> {
             let pe_tx0 = pe_tx.clone();
             let handle = std::thread::spawn(move || {
                 loop {
+                    let now = std::time::Instant::now();
                     let product_evaluations = {
                         let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
 
@@ -264,7 +265,7 @@ impl<N: Network> CoinbasePuzzle<N> {
                         product_evaluations
                     };
                     pe_tx0.send(product_evaluations).unwrap();
-                    info!("### pe_tx0 send" );
+                    info!("### pe_tx0 send ({})",now.elapsed().as_millis() );
                 }
             });
             pe_handles.push(handle);
@@ -305,8 +306,9 @@ impl<N: Network> CoinbasePuzzle<N> {
 
                     loop {
                         info!("### pe_rx recv begin " );
+                        let now = std::time::Instant::now();
                         let product_evaluations0 = pe_rx0.recv().unwrap();
-                        info!("### pe_rx recv end " );
+                        info!("### pe_rx recv end ({}) "，now.elapsed().as_millis() );
                         let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
                         // ret
                     }
