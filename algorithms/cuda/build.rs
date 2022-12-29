@@ -83,12 +83,12 @@ fn main() {
         nvcc.cuda(true);
         nvcc.flag("-g");
         nvcc.flag("-arch=sm_70");
-        nvcc.flag("-maxrregcount=255" /* ## */);
+        nvcc.flag("-maxrregcount=32" /* ## */);
         nvcc.flag("-Xcompiler").flag("-Wno-unused-function");
         nvcc.flag("-Xcompiler").flag("-Wno-subobject-linkage");
         nvcc.define("TAKE_RESPONSIBILITY_FOR_ERROR_MESSAGE", None);
         //#[cfg(feature = "cuda-mobile")]
-        nvcc.define("NTHREADS", "512" /* ## */);
+        nvcc.define("NTHREADS", "32" /* ## */);
         nvcc.define(curve, None);
         if let Some(def) = cc_opt {
             nvcc.define(def, None);
