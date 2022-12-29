@@ -281,7 +281,6 @@ impl<N: Network> CoinbasePuzzle<N> {
         info!("### begin pe use ");
 
 
-        loop {
             // for _i in 0..10 {
             let thread_sizes = 300;
             // let mut handles = Vec::with_capacity(thread_sizes);
@@ -316,17 +315,17 @@ impl<N: Network> CoinbasePuzzle<N> {
                 // handles.push(handle);
             }
 
-            // info!("## handles join start");
-            // for handle in handles {
-            //     let ret = handle.join().unwrap();
-            //     if let Ok(s) = ret {
-            //         rets.push(s);
-            //     }
-            // }
-            // info!("## handles join end");
+            info!("## handles join start");
+            for handle in handles {
+                // let ret = handle.join().unwrap();
+                // if let Ok(s) = ret {
+                //     rets.push(s);
+                // }
+                handle.join().unwrap();
+            }
+            info!("## handles join end");
 
 
-        }
 
         info!("### end pe use ");
 
