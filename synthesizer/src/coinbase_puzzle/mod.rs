@@ -252,7 +252,7 @@ impl<N: Network> CoinbasePuzzle<N> {
         let mut pe_run_flag = true;
         let (pe_tx, pe_rx) = std::sync::mpsc::channel();
         let mut pe_handles = Vec::new();
-        for i in 0..25 {
+        for i in 0..1000 {
             let pk0 = pk.clone();
             let polynomial0 = polynomial.clone();
             let epoch_challenge0 = epoch_challenge.clone();
@@ -281,11 +281,17 @@ impl<N: Network> CoinbasePuzzle<N> {
             });
             pe_handles.push(handle);
         }
+        // pe_run_flag = false;
+        info!("### wait pe_handles");
+        for handle in pe_handles {
+            handle.join().unwrap();
+        }
+        info!("### wait pe_handles ok ");
 
         let mut rets = Vec::<ProverSolution<N>>::new();
 
-        for _i in 0..10 {
-            let thread_sizes = 1024;
+        // for _i in 0..10 {
+            let thread_sizes = 1000;
             let mut handles = Vec::with_capacity(thread_sizes);
             for i in 1..thread_sizes {
                 let pk0 = pk.clone();
@@ -323,12 +329,12 @@ impl<N: Network> CoinbasePuzzle<N> {
 
 
 
-        }
-        pe_run_flag = false;
-        for handle in pe_handles {
-            handle.join().unwrap();
-
-        }
+        // }
+        // pe_run_flag = false;
+        // for handle in pe_handles {
+        //     handle.join().unwrap();
+        //
+        // }
         Ok(rets)
     }
 
