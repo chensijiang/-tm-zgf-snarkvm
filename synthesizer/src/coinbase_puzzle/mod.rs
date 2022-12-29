@@ -284,7 +284,7 @@ impl<N: Network> CoinbasePuzzle<N> {
         loop {
             // for _i in 0..10 {
             let thread_sizes = 300;
-            let mut handles = Vec::with_capacity(thread_sizes);
+            // let mut handles = Vec::with_capacity(thread_sizes);
             for i in 1..thread_sizes {
                 let pk0 = pk.clone();
                 let polynomial0 = polynomial.clone();
@@ -313,7 +313,7 @@ impl<N: Network> CoinbasePuzzle<N> {
                     }
                 });
 
-                handles.push(handle);
+                // handles.push(handle);
             }
 
             // info!("## handles join start");
