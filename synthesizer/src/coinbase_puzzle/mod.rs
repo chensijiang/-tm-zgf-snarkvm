@@ -303,24 +303,27 @@ impl<N: Network> CoinbasePuzzle<N> {
                 // let product_evaluations0 = product_evaluations.clone();
                 let pe_rx0 = pe_rx.clone();
                 let handle = std::thread::spawn(move || {
-                    info!("### pe_rx recv begin " );
-                    let product_evaluations0 = pe_rx0.recv().unwrap();
-                    info!("### pe_rx recv end " );
-                    let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
-                    ret
+
+                    loop {
+                        info!("### pe_rx recv begin " );
+                        let product_evaluations0 = pe_rx0.recv().unwrap();
+                        info!("### pe_rx recv end " );
+                        let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
+                        // ret
+                    }
                 });
 
                 handles.push(handle);
             }
 
-            println!("## handles join start");
-            for handle in handles {
-                let ret = handle.join().unwrap();
-                if let Ok(s) = ret {
-                    rets.push(s);
-                }
-            }
-            println!("## handles join end");
+            // info!("## handles join start");
+            // for handle in handles {
+            //     let ret = handle.join().unwrap();
+            //     if let Ok(s) = ret {
+            //         rets.push(s);
+            //     }
+            // }
+            // info!("## handles join end");
 
 
         }
