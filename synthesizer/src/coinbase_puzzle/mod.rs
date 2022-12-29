@@ -246,7 +246,7 @@ impl<N: Network> CoinbasePuzzle<N> {
         let (pe_tx__, pe_rx__) =  crossbeam::channel::bounded(1000);
         let (pe_tx, pe_rx) = (&pe_tx__ , &pe_rx__ );
         let mut pe_handles = Vec::new();
-        for i in 0..100 {
+        for i in 0..50 {
             let pk0 = pk.clone();
             let polynomial0 = polynomial.clone();
             let epoch_challenge0 = epoch_challenge.clone();
