@@ -260,20 +260,23 @@ impl<N: Network> CoinbasePuzzle<N> {
             let handle = std::thread::spawn(move || {
 
 
+                for iii in 0..10 {
+                    let product_evaluations = {
 
-                let product_evaluations = {
+                        let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
 
-                    let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
+                        let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
+                            &polynomial_evaluations,
+                            &epoch_challenge0.epoch_polynomial_evaluations().evaluations,
+                        );
 
-                    let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
-                        &polynomial_evaluations,
-                        &epoch_challenge0.epoch_polynomial_evaluations().evaluations,
-                    );
+                        product_evaluations
+                    };
+                    pe_tx0.send(product_evaluations).unwrap();
+                    info!("### pe_tx0 send iii={}",iii);
+                }
 
-                    product_evaluations
-                };
-                pe_tx0.send(product_evaluations).unwrap();
-                info!("### pe_tx0 send");
+
             });
             pe_handles.push(handle);
         }
@@ -305,9 +308,9 @@ impl<N: Network> CoinbasePuzzle<N> {
                 //         s
                 //     }
                 // };
-                info!("### pe_rx recv begin count:{}",pe_rx.count());
+                info!("### pe_rx recv begin " );
                 let product_evaluations = pe_rx.recv().unwrap();
-                info!("### pe_rx recv end count:{}",pe_rx.count());
+                info!("### pe_rx recv end " );
                 let product_evaluations0 = product_evaluations.clone();
 
                 let handle = std::thread::spawn(move || {
