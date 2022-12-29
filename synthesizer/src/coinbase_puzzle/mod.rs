@@ -300,11 +300,11 @@ impl<N: Network> CoinbasePuzzle<N> {
                 //     }
                 // };
 
-                let product_evaluations0 = product_evaluations.clone();
+                // let product_evaluations0 = product_evaluations.clone();
                 let pe_rx0 = pe_rx.clone();
                 let handle = std::thread::spawn(move || {
                     info!("### pe_rx recv begin " );
-                    let product_evaluations = pe_rx0.recv().unwrap();
+                    let product_evaluations0 = pe_rx0.recv().unwrap();
                     info!("### pe_rx recv end " );
                     let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
                     ret
