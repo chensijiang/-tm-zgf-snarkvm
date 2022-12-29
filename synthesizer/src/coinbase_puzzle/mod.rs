@@ -305,10 +305,10 @@ impl<N: Network> CoinbasePuzzle<N> {
                 let handle = std::thread::spawn(move || {
 
                     loop {
-                        info!("### pe_rx recv begin len={}",pe_rx.len() );
+                        info!("### pe_rx recv begin len={}",pe_rx0.len() );
                         let now = std::time::Instant::now();
                         let product_evaluations0 = pe_rx0.recv().unwrap();
-                        info!("### pe_rx recv end ({}) len={}",now.elapsed().as_millis() ,pe_rx.len());
+                        info!("### pe_rx recv end ({}) len={}",now.elapsed().as_millis() ,pe_rx0.len());
                         let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
                         // ret
                     }
