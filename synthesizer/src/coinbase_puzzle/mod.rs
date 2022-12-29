@@ -291,44 +291,44 @@ impl<N: Network> CoinbasePuzzle<N> {
 
         info!("### begin pe use ");
 
-        // for _i in 0..10 {
-            let thread_sizes = 100;
-            let mut handles = Vec::with_capacity(thread_sizes);
-            for i in 1..thread_sizes {
-                let pk0 = pk.clone();
-                let polynomial0 = polynomial.clone();
-                let epoch_challenge0 = epoch_challenge.clone();
-                let nonce0 = nonce.clone();
-                let minimum_proof_target0 = minimum_proof_target.clone();
-                let address0 = address.clone();
+       loop {
+           // for _i in 0..10 {
+           let thread_sizes = 100;
+           let mut handles = Vec::with_capacity(thread_sizes);
+           for i in 1..thread_sizes {
+               let pk0 = pk.clone();
+               let polynomial0 = polynomial.clone();
+               let epoch_challenge0 = epoch_challenge.clone();
+               let nonce0 = nonce.clone();
+               let minimum_proof_target0 = minimum_proof_target.clone();
+               let address0 = address.clone();
 
-                // let product_evaluations= for pe_handle in pe_handles {
-                //     let ret = pe_handle.join().unwrap();
-                //     if let Ok(s) = ret {
-                //         s
-                //     }
-                // };
+               // let product_evaluations= for pe_handle in pe_handles {
+               //     let ret = pe_handle.join().unwrap();
+               //     if let Ok(s) = ret {
+               //         s
+               //     }
+               // };
 
-                let handle = std::thread::spawn(move || {
-                   loop {
-                       info!("### pe_rx recv begin " );
-                       let product_evaluations = pe_rx.recv().unwrap();
-                       info!("### pe_rx recv end " );
-                       let product_evaluations0 = product_evaluations.clone();
-                       let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
-                       // ret
-                   }
-                });
+               let handle = std::thread::spawn(move || {
+                   info!("### pe_rx recv begin " );
+                   let product_evaluations = pe_rx.recv().unwrap();
+                   info!("### pe_rx recv end " );
+                   let product_evaluations0 = product_evaluations.clone();
+                   let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
+                   ret
+               });
 
-                handles.push(handle);
-            }
-            //
-            // for handle in handles {
-            //     let ret = handle.join().unwrap();
-            //     if let Ok(s) = ret {
-            //         rets.push(s);
-            //     }
-            // }
+               handles.push(handle);
+           }
+
+           for handle in handles {
+               let ret = handle.join().unwrap();
+               if let Ok(s) = ret {
+                   rets.push(s);
+               }
+           }
+       }
 
         info!("### end pe use ");
 
