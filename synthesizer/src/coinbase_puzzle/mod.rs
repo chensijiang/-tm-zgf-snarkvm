@@ -305,9 +305,9 @@ impl<N: Network> CoinbasePuzzle<N> {
                 //         s
                 //     }
                 // };
-                info!("### pe_rx recv begin");
+                info!("### pe_rx recv begin count:{}",pe_rx.count());
                 let product_evaluations = pe_rx.recv().unwrap();
-                info!("### pe_rx recv end");
+                info!("### pe_rx recv end count:{}",pe_rx.count());
                 let product_evaluations0 = product_evaluations.clone();
 
                 let handle = std::thread::spawn(move || {
