@@ -53,6 +53,7 @@ features = ["rt"]
 
 [dependencies]
 measure_time = "0.8"
+crossbeam = "0.8.2"
 
 [dependencies.circuit]
 package = "snarkvm-circuit"
