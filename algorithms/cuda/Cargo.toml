@@ -33,7 +33,7 @@ version = "0.3.9"
 features = [ ]
 
 [dependencies.sppark]
-path="../../../sppark/rust"
+path="../../../zgf-sppark/rust"
 #git = "https://github.com/supranational/sppark"
 #rev = "48f6ac6"
 #version = "0.1.3"

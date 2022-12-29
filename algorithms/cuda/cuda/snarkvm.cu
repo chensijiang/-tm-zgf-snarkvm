@@ -293,6 +293,7 @@ public:
                     
                 } catch (const cuda_error& e) {
                     out->inf();
+                    printf("### cuda_error %s\n",e.what() );
 #ifdef TAKE_RESPONSIBILITY_FOR_ERROR_MESSAGE
                     ret = RustError{e.code(), e.what()};
 #else

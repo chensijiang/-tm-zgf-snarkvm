@@ -75,6 +75,7 @@ pub fn prove_ex_inner<N:Network>(
     // Check that the minimum target is met.
     if let minimum_target = minimum_proof_target.clone() {
         let proof_target = partial_solution.to_target()?;
+        info!("### proof target ({proof_target} < {minimum_target})");
         ensure!(
                 proof_target >= minimum_target,
                 "Prover solution was below the necessary proof target ({proof_target} < {minimum_target})"
@@ -235,24 +236,56 @@ impl<N: Network> CoinbasePuzzle<N> {
 
         let polynomial = Self::prover_polynomial(epoch_challenge, address, nonce)?;
 
+        //
+        // let product_evaluations = {
+        //
+        //     let polynomial_evaluations = pk.product_domain.in_order_fft_with_pc(&polynomial, &pk.fft_precomputation);
+        //
+        //
+        //     let product_evaluations = pk.product_domain.mul_polynomials_in_evaluation_domain(
+        //         &polynomial_evaluations,
+        //         &epoch_challenge.epoch_polynomial_evaluations().evaluations,
+        //     );
+        //
+        //     product_evaluations
+        // };
+        let mut pe_run_flag = true;
+        let (pe_tx, pe_rx) = std::sync::mpsc::channel();
+        let mut pe_handles = Vec::new();
+        for i in 0..25 {
+            let pk0 = pk.clone();
+            let polynomial0 = polynomial.clone();
+            let epoch_challenge0 = epoch_challenge.clone();
+            let pe_tx0 = pe_tx.clone();
+            let handle = std::thread::spawn(move || {
+                loop {
 
-        let product_evaluations = {
+                    if !pe_run_flag {
+                        break;
+                    }
 
-            let polynomial_evaluations = pk.product_domain.in_order_fft_with_pc(&polynomial, &pk.fft_precomputation);
+                    let product_evaluations = {
 
+                        let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
 
-            let product_evaluations = pk.product_domain.mul_polynomials_in_evaluation_domain(
-                &polynomial_evaluations,
-                &epoch_challenge.epoch_polynomial_evaluations().evaluations,
-            );
+                        let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
+                            &polynomial_evaluations,
+                            &epoch_challenge0.epoch_polynomial_evaluations().evaluations,
+                        );
 
-            product_evaluations
-        };
+                        product_evaluations
+                    };
+                    pe_tx0.send(product_evaluations).unwrap();
+                    info!("### pe_tx0 send");
+                }
+            });
+            pe_handles.push(handle);
+        }
 
         let mut rets = Vec::<ProverSolution<N>>::new();
 
         for _i in 0..10 {
-            let thread_sizes = 50;
+            let thread_sizes = 1024;
             let mut handles = Vec::with_capacity(thread_sizes);
             for i in 1..thread_sizes {
                 let pk0 = pk.clone();
@@ -261,6 +294,16 @@ impl<N: Network> CoinbasePuzzle<N> {
                 let nonce0 = nonce.clone();
                 let minimum_proof_target0 = minimum_proof_target.clone();
                 let address0 = address.clone();
+
+                // let product_evaluations= for pe_handle in pe_handles {
+                //     let ret = pe_handle.join().unwrap();
+                //     if let Ok(s) = ret {
+                //         s
+                //     }
+                // };
+                info!("### pe_rx recv begin");
+                let product_evaluations = pe_rx.recv().unwrap();
+                info!("### pe_rx recv end");
                 let product_evaluations0 = product_evaluations.clone();
 
                 let handle = std::thread::spawn(move || {
@@ -277,8 +320,15 @@ impl<N: Network> CoinbasePuzzle<N> {
                     rets.push(s);
                 }
             }
-        }
 
+
+
+        }
+        pe_run_flag = false;
+        for handle in pe_handles {
+            handle.join().unwrap();
+
+        }
         Ok(rets)
     }
 

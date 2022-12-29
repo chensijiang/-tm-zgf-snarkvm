@@ -45,7 +45,10 @@ impl VariableBase {
                             bases, scalars,
                         );
                         if let Ok(result) = result {
+                            info_time!("mss cuda result ok");
                             return result;
+                        } else {
+                            info_time!("mss cuda result fail");
                         }
                     }
                 }
