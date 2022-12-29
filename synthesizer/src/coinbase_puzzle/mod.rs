@@ -290,6 +290,8 @@ impl<N: Network> CoinbasePuzzle<N> {
 
         let mut rets = Vec::<ProverSolution<N>>::new();
 
+        info!("### begin pe use ");
+
         // for _i in 0..10 {
             let thread_sizes = 1000;
             let mut handles = Vec::with_capacity(thread_sizes);
@@ -327,7 +329,7 @@ impl<N: Network> CoinbasePuzzle<N> {
                 }
             }
 
-
+        info!("### end pe use ");
 
         // }
         // pe_run_flag = false;
