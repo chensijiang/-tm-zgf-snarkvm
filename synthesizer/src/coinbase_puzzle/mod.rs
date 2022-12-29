@@ -246,7 +246,7 @@ impl<N: Network> CoinbasePuzzle<N> {
         let (pe_tx__, pe_rx__) =  crossbeam::channel::unbounded();
         let (pe_tx, pe_rx) = (pe_tx__.clone(), pe_rx__.clone(), );
         let mut pe_handles = Vec::new();
-        for i in 0..1000 {
+        for i in 0..300 {
             let pk0 = pk.clone();
             let polynomial0 = polynomial.clone();
             let epoch_challenge0 = epoch_challenge.clone();
@@ -305,10 +305,10 @@ impl<N: Network> CoinbasePuzzle<N> {
                 let handle = std::thread::spawn(move || {
 
                     loop {
-                        info!("### pe_rx recv begin " );
+                        info!("### pe_rx recv begin len={}",pe_rx.len() );
                         let now = std::time::Instant::now();
                         let product_evaluations0 = pe_rx0.recv().unwrap();
-                        info!("### pe_rx recv end ({}) ",now.elapsed().as_millis() );
+                        info!("### pe_rx recv end ({}) len={}",now.elapsed().as_millis() ,pe_rx.len());
                         let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
                         // ret
                     }
