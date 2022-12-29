@@ -14,40 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with the snarkVM library. If not, see <https://www.gnu.org/licenses/>.
 
-mod helpers;
-pub use helpers::*;
+use std::sync::Arc;
+use std::thread;
+use std::thread::JoinHandle;
 
-mod hash;
-use hash::*;
+use measure_time::{debug_time, error_time, info_time, print_time, trace_time};
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
-#[cfg(test)]
-mod tests;
-
-use crate::UniversalSRS;
 use console::{
     account::Address,
     prelude::{anyhow, bail, cfg_iter, ensure, has_duplicates, Network, Result, ToBytes},
     program::cfg_into_iter,
 };
+use hash::*;
+pub use helpers::*;
 use snarkvm_algorithms::{
     fft::{DensePolynomial, EvaluationDomain},
     msm::VariableBase,
-    polycommit::kzg10::{KZGCommitment, UniversalParams as SRS, KZG10},
+    polycommit::kzg10::{KZG10, KZGCommitment, UniversalParams as SRS},
 };
 use snarkvm_curves::PairingEngine;
 use snarkvm_fields::{PrimeField, Zero};
 
-use std::sync::Arc;
+use crate::UniversalSRS;
 
-#[cfg(feature = "parallel")]
-use rayon::prelude::*;
-
-use measure_time::{info_time, debug_time, trace_time, error_time, print_time};
+mod helpers;
+mod hash;
+#[cfg(test)]
+mod tests;
 
 //use tokio::task::JoinHandle;
-
-use std::thread;
-use std::thread::JoinHandle;
 
 #[derive(Clone)]
 pub enum CoinbasePuzzle<N: Network> {
@@ -57,17 +54,16 @@ pub enum CoinbasePuzzle<N: Network> {
     Verifier(Arc<CoinbaseVerifyingKey<N>>),
 }
 
-pub fn prove_ex_inner<N:Network>(
-    pk:&CoinbaseProvingKey<N>,
-    polynomial:&DensePolynomial<<N::PairingCurve as PairingEngine>::Fr>,
+pub fn prove_ex_inner<N: Network>(
+    pk: &CoinbaseProvingKey<N>,
+    polynomial: &DensePolynomial<<N::PairingCurve as PairingEngine>::Fr>,
     epoch_challenge: &EpochChallenge<N>,
     address: &Address<N>,
     nonce: u64,
     minimum_proof_target: u64,
     product_evaluations: &[<N::PairingCurve as PairingEngine>::Fr],
 ) -> Result<ProverSolution<N>> {
-
-   let (commitment, _rand) =
+    let (commitment, _rand) =
         KZG10::commit_lagrange(&pk.lagrange_basis(), &product_evaluations.clone(), None, &Default::default(), None)?;
 
     let partial_solution = PartialSolution::new(*address, nonce, commitment);
@@ -81,7 +77,6 @@ pub fn prove_ex_inner<N:Network>(
                 "Prover solution was below the necessary proof target ({proof_target} < {minimum_target})"
             );
     }
-
 
 
     let point = hash_commitment(&commitment)?;
@@ -172,22 +167,20 @@ impl<N: Network> CoinbasePuzzle<N> {
         let polynomial = Self::prover_polynomial(epoch_challenge, address, nonce)?;
 
         let product_evaluations = {
-
             let polynomial_evaluations = pk.product_domain.in_order_fft_with_pc(&polynomial, &pk.fft_precomputation);
 
 
-                let product_evaluations = pk.product_domain.mul_polynomials_in_evaluation_domain(
-                    &polynomial_evaluations,
-                    &epoch_challenge.epoch_polynomial_evaluations().evaluations,
-                );
+            let product_evaluations = pk.product_domain.mul_polynomials_in_evaluation_domain(
+                &polynomial_evaluations,
+                &epoch_challenge.epoch_polynomial_evaluations().evaluations,
+            );
 
             product_evaluations
         };
 
 
-
         let (commitment, _rand) =
-                KZG10::commit_lagrange(&pk.lagrange_basis(), &product_evaluations, None, &Default::default(), None)?;
+            KZG10::commit_lagrange(&pk.lagrange_basis(), &product_evaluations, None, &Default::default(), None)?;
 
 
         let partial_solution = PartialSolution::new(address, nonce, commitment);
@@ -217,8 +210,6 @@ impl<N: Network> CoinbasePuzzle<N> {
 
         Ok(ProverSolution::new(partial_solution, proof))
     }
-
-
 
 
     pub fn prove_ex(
@@ -258,11 +249,8 @@ impl<N: Network> CoinbasePuzzle<N> {
             let epoch_challenge0 = epoch_challenge.clone();
             let pe_tx0 = pe_tx.clone();
             let handle = std::thread::spawn(move || {
-
-
                 loop {
                     let product_evaluations = {
-
                         let polynomial_evaluations = pk0.product_domain.in_order_fft_with_pc(&polynomial0, &pk0.fft_precomputation);
 
                         let product_evaluations = pk0.product_domain.mul_polynomials_in_evaluation_domain(
@@ -275,8 +263,6 @@ impl<N: Network> CoinbasePuzzle<N> {
                     pe_tx0.send(product_evaluations).unwrap();
                     info!("### pe_tx0 send" );
                 }
-
-
             });
             pe_handles.push(handle);
         }
@@ -291,44 +277,46 @@ impl<N: Network> CoinbasePuzzle<N> {
 
         info!("### begin pe use ");
 
-       loop {
-           // for _i in 0..10 {
-           let thread_sizes = 100;
-           let mut handles = Vec::with_capacity(thread_sizes);
-           for i in 1..thread_sizes {
-               let pk0 = pk.clone();
-               let polynomial0 = polynomial.clone();
-               let epoch_challenge0 = epoch_challenge.clone();
-               let nonce0 = nonce.clone();
-               let minimum_proof_target0 = minimum_proof_target.clone();
-               let address0 = address.clone();
 
-               // let product_evaluations= for pe_handle in pe_handles {
-               //     let ret = pe_handle.join().unwrap();
-               //     if let Ok(s) = ret {
-               //         s
-               //     }
-               // };
+        loop {
+            // for _i in 0..10 {
+            let thread_sizes = 100;
+            let mut handles = Vec::with_capacity(thread_sizes);
+            for i in 1..thread_sizes {
+                let pk0 = pk.clone();
+                let polynomial0 = polynomial.clone();
+                let epoch_challenge0 = epoch_challenge.clone();
+                let nonce0 = nonce.clone();
+                let minimum_proof_target0 = minimum_proof_target.clone();
+                let address0 = address.clone();
 
-               let handle = std::thread::spawn(move || {
-                   info!("### pe_rx recv begin " );
-                   let product_evaluations = pe_rx.recv().unwrap();
-                   info!("### pe_rx recv end " );
-                   let product_evaluations0 = product_evaluations.clone();
-                   let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
-                   ret
-               });
+                // let product_evaluations= for pe_handle in pe_handles {
+                //     let ret = pe_handle.join().unwrap();
+                //     if let Ok(s) = ret {
+                //         s
+                //     }
+                // };
+                info!("### pe_rx recv begin " );
+                let product_evaluations = pe_rx.recv().unwrap();
+                info!("### pe_rx recv end " );
+                let product_evaluations0 = product_evaluations.clone();
 
-               handles.push(handle);
-           }
+                let handle = std::thread::spawn(move || {
+                    let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
+                    ret
+                });
 
-           for handle in handles {
-               let ret = handle.join().unwrap();
-               if let Ok(s) = ret {
-                   rets.push(s);
-               }
-           }
-       }
+                handles.push(handle);
+            }
+
+            for handle in handles {
+                let ret = handle.join().unwrap();
+                if let Ok(s) = ret {
+                    rets.push(s);
+                }
+            }
+
+        }
 
         info!("### end pe use ");
 
