@@ -243,10 +243,10 @@ impl<N: Network> CoinbasePuzzle<N> {
         //     product_evaluations
         // };
         let mut pe_run_flag = true;
-        let (pe_tx__, pe_rx__) =  crossbeam::channel::unbounded();
+        let (pe_tx__, pe_rx__) =  crossbeam::channel::bounded(1000);
         let (pe_tx, pe_rx) = (pe_tx__.clone(), pe_rx__.clone(), );
         let mut pe_handles = Vec::new();
-        for i in 0..300 {
+        for i in 0..100 {
             let pk0 = pk.clone();
             let polynomial0 = polynomial.clone();
             let epoch_challenge0 = epoch_challenge.clone();
@@ -283,7 +283,7 @@ impl<N: Network> CoinbasePuzzle<N> {
 
 
             // for _i in 0..10 {
-            let thread_sizes = 400;
+            let thread_sizes = 500;
             let mut handles = Vec::with_capacity(thread_sizes);
             for i in 1..thread_sizes {
                 let pk0 = pk.clone();
