@@ -322,13 +322,13 @@ impl<N: Network> CoinbasePuzzle<N> {
 
                 handles.push(handle);
             }
-
-            for handle in handles {
-                let ret = handle.join().unwrap();
-                if let Ok(s) = ret {
-                    rets.push(s);
-                }
-            }
+            //
+            // for handle in handles {
+            //     let ret = handle.join().unwrap();
+            //     if let Ok(s) = ret {
+            //         rets.push(s);
+            //     }
+            // }
 
         info!("### end pe use ");
 
