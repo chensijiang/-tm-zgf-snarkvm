@@ -243,13 +243,13 @@ impl<N: Network> CoinbasePuzzle<N> {
         //     product_evaluations
         // };
         let mut pe_run_flag = true;
-        let (pe_tx__, pe_rx__) =  crossbeam::channel::bounded(1000);
-        let (pe_tx, pe_rx) = (&pe_tx__ , &pe_rx__ );
+        let (pe_tx, pe_rx) =  crossbeam::channel::bounded(1000);
         let mut pe_handles = Vec::new();
         for i in 0..50 {
             let pk0 = pk.clone();
             let polynomial0 = polynomial.clone();
             let epoch_challenge0 = epoch_challenge.clone();
+            let pe_tx0 = pe_tx.clone();
             let handle = std::thread::spawn(move || {
                 loop {
                     let now = std::time::Instant::now();
@@ -263,7 +263,7 @@ impl<N: Network> CoinbasePuzzle<N> {
 
                         product_evaluations
                     };
-                    pe_tx.send(product_evaluations).unwrap();
+                    pe_tx0.send(product_evaluations).unwrap();
                     info!("### pe_tx0 send ({})",now.elapsed().as_millis() );
                 }
             });
@@ -300,13 +300,14 @@ impl<N: Network> CoinbasePuzzle<N> {
                 // };
 
                 // let product_evaluations0 = product_evaluations.clone();
+                let pe_rx0 = pe_rx.clone();
                 let handle = std::thread::spawn(move || {
 
                     loop {
-                        info!("### pe_rx recv begin len={}",pe_rx.len() );
+                        info!("### pe_rx recv begin len={}",pe_rx0.len() );
                         let now = std::time::Instant::now();
-                        let product_evaluations0 = pe_rx.recv().unwrap();
-                        info!("### pe_rx recv end ({}) len={}",now.elapsed().as_millis() ,pe_rx.len());
+                        let product_evaluations0 = pe_rx0.recv().unwrap();
+                        info!("### pe_rx recv end ({}) len={}",now.elapsed().as_millis() ,pe_rx0.len());
                         let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
                         // ret
                     }
