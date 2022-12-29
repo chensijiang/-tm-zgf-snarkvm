@@ -315,8 +315,8 @@ impl<N: Network> CoinbasePuzzle<N> {
                        let product_evaluations = pe_rx.recv().unwrap();
                        info!("### pe_rx recv end " );
                        let product_evaluations0 = product_evaluations.clone();
-                       let ret = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
-                       ret
+                       let _ = prove_ex_inner(&pk0, &polynomial0, &epoch_challenge0, &address0, nonce0, minimum_proof_target0, &product_evaluations0);
+                       // ret
                    }
                 });
 
