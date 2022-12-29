@@ -292,7 +292,7 @@ impl<N: Network> CoinbasePuzzle<N> {
         info!("### begin pe use ");
 
         // for _i in 0..10 {
-            let thread_sizes = 1000;
+            let thread_sizes = 100;
             let mut handles = Vec::with_capacity(thread_sizes);
             for i in 1..thread_sizes {
                 let pk0 = pk.clone();
