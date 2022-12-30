@@ -44,7 +44,7 @@ impl VariableBase {
                     let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
                         bases, scalars,
                     );
-                    info!("### single msm time:{}",now.elapsed().as_millis()  );
+                    info!("### single msm end time:{} scalars_len={}",now.elapsed().as_millis()  , scalars.len() );
                     if let Ok(result) = result {
                         info!("### mss cuda result ok");
                         return result;
@@ -55,7 +55,7 @@ impl VariableBase {
                 let now = std::time::Instant::now();
                 info!("### batch msm begin scalars_len={}", scalars.len() );
                 let brbr = batched::msm(bases, scalars);
-                info!("### batch msm time:{}",now.elapsed().as_millis());
+                info!("### batch msm end time:{} scalars_len={}",now.elapsed().as_millis(), scalars.len() );
                 brbr
             }
             // For all other curves, we perform variable base MSM using Pippenger's algorithm.
