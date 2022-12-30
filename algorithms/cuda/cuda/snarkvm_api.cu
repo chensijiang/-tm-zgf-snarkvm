@@ -213,7 +213,7 @@ RustError snarkvm_msm(point_t* out, const affine_t points[], size_t npoints,
     high_resolution_clock::time_point beginTime = high_resolution_clock::now();
 
     milliseconds beginMs = std::chrono::duration_cast<milliseconds>(  beginTime.time_since_epoch());
-    cout <<  "### snarkvm_msm wait_and_pop begin " <<  beginMs << "\n";
+    cout <<  "### snarkvm_msm wait_and_pop begin " <<  beginMs.count() << "\n";
 
     std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
