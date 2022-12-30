@@ -40,18 +40,20 @@ impl VariableBase {
                 // println!("scalars :{:?}", scalars.len());
                 if scalars.len() > 1024 {
                     let now = std::time::Instant::now();
+                    info!("### single msm begin scalars_len={}", scalars.len() );
                     let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
                         bases, scalars,
                     );
-                    info!("### single msm time:{}",now.elapsed().as_millis());
+                    info!("### single msm time:{}",now.elapsed().as_millis()  );
                     if let Ok(result) = result {
-                        info_time!("mss cuda result ok");
+                        info!("### mss cuda result ok");
                         return result;
                     } else {
-                        info_time!("mss cuda result fail");
+                        info!("### mss cuda result fail");
                     }
                 }
                 let now = std::time::Instant::now();
+                info!("### batch msm begin scalars_len={}", scalars.len() );
                 let brbr = batched::msm(bases, scalars);
                 info!("### batch msm time:{}",now.elapsed().as_millis());
                 brbr
