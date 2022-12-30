@@ -220,7 +220,7 @@ RustError snarkvm_msm(point_t* out, const affine_t points[], size_t npoints,
     high_resolution_clock::time_point endTime = high_resolution_clock::now();
 
     milliseconds timeInterval = std::chrono::duration_cast<milliseconds>(endTime - beginTime);
-    cout <<  "### snarkvm_msm wait_and_pop time " << timeInterval.count() << "ms  beginMs=" <<beginMs << "\n";
+    cout <<  "### snarkvm_msm wait_and_pop time " << timeInterval.count() << "ms  beginMs=" <<beginMs.count() << "\n";
 
     RustError ret = RustError{cudaErrorMemoryAllocation};
     try{
