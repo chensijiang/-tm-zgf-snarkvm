@@ -208,14 +208,19 @@ RustError snarkvm_polymul(fr_t* out,
 RustError snarkvm_msm(point_t* out, const affine_t points[], size_t npoints,
                       const scalar_t scalars[], size_t ffi_affine_size) {
 
+
+
     high_resolution_clock::time_point beginTime = high_resolution_clock::now();
+
+    milliseconds beginMs = std::chrono::duration_cast<milliseconds>(  beginTime);
+    cout <<  "### snarkvm_msm wait_and_pop begin " <<  beginMs << "\n";
 
     std::shared_ptr<snarkvm_singleton_t*> p = snarkvm_g.wait_and_pop();
 
     high_resolution_clock::time_point endTime = high_resolution_clock::now();
 
     milliseconds timeInterval = std::chrono::duration_cast<milliseconds>(endTime - beginTime);
-    cout <<  "### snarkvm_msm wait_and_pop time " << timeInterval.count() << "ms\n";
+    cout <<  "### snarkvm_msm wait_and_pop time " << timeInterval.count() << "ms  beginMs=" <<beginMs << "\n";
 
     RustError ret = RustError{cudaErrorMemoryAllocation};
     try{
