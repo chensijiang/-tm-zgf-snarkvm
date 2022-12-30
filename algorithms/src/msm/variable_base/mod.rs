@@ -24,7 +24,7 @@ use snarkvm_curves::{bls12_377::G1Affine, traits::AffineCurve};
 use snarkvm_fields::PrimeField;
 
 use core::any::TypeId;
-use measure_time::{info_time, debug_time, trace_time, error_time, print_time};
+use measure_time::{info_time, debug_time, trace_time, error_time, print_time, info};
 
 pub struct VariableBase;
 
@@ -37,22 +37,24 @@ impl VariableBase {
 
                 #[cfg(all(feature = "cuda", target_arch = "x86_64"))]
                 // TODO SNP: where to set the threshold
-                println!("scalars :{:?}", scalars.len());
+                // println!("scalars :{:?}", scalars.len());
                 if scalars.len() > 1024 {
-                    info_time!("msm cuda");
-                    {
-                        let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
-                            bases, scalars,
-                        );
-                        if let Ok(result) = result {
-                            info_time!("mss cuda result ok");
-                            return result;
-                        } else {
-                            info_time!("mss cuda result fail");
-                        }
+                    let now = std::time::Instant::now();
+                    let result = snarkvm_algorithms_cuda::msm::<G, G::Projective, <G::ScalarField as PrimeField>::BigInteger>(
+                        bases, scalars,
+                    );
+                    info!("### single msm time:{}",now.elapsed().as_millis());
+                    if let Ok(result) = result {
+                        info_time!("mss cuda result ok");
+                        return result;
+                    } else {
+                        info_time!("mss cuda result fail");
                     }
                 }
-                batched::msm(bases, scalars)
+                let now = std::time::Instant::now();
+                let brbr = batched::msm(bases, scalars);
+                info!("### batch msm time:{}",now.elapsed().as_millis());
+                brbr
             }
             // For all other curves, we perform variable base MSM using Pippenger's algorithm.
             else {
