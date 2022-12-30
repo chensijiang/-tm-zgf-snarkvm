@@ -16,6 +16,10 @@
 
 #include <cuda.h>
 #include <chrono>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::milliseconds;
+
 #include "snarkvm.cu"
 
 #include <iostream>
